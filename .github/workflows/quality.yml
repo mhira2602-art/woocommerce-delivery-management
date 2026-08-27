@@ -1,0 +1,38 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.0']
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathai/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run PHPUnit
+        run: composer test
+
+      - name: Run PHPStan
+        run: composer phpstan
+
+      - name: Run PHPCS
+        run: composer phpcs

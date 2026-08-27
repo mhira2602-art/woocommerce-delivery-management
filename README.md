@@ -20,6 +20,38 @@ This project is in active development. Only the foundation and plugin bootstrap 
 3. Activate the plugin from the WordPress admin Plugins screen.
 4. Ensure WooCommerce is installed and active.
 
+## Development
+
+Install Composer dependencies from the plugin directory:
+
+```bash
+composer install
+```
+
+Run the unit tests:
+
+```bash
+composer test
+```
+
+Run static analysis:
+
+```bash
+composer phpstan
+```
+
+Run WordPress Coding Standards checks:
+
+```bash
+composer phpcs
+```
+
+Run the complete quality check:
+
+```bash
+composer check
+```
+
 ## Architecture Overview
 
 - `woocommerce-delivery-management.php` handles WordPress bootstrap and dependency checks.

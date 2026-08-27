@@ -6,12 +6,36 @@
   "require": {
     "php": ">=7.4 <9.0"
   },
+  "require-dev": {
+    "phpstan/phpstan": "^1.12",
+    "phpunit/phpunit": "^9.6",
+    "wp-coding-standards/wpcs": "^3.2",
+    "squizlabs/php_codesniffer": "^3.13"
+  },
   "autoload": {
     "psr-4": {
       "WDM\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "WDM\\Tests\\": "tests/"
+    }
+  },
   "config": {
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "scripts": {
+    "test": "@php vendor/bin/phpunit --configuration phpunit.xml.dist",
+    "phpstan": "@php vendor/bin/phpstan analyse --configuration=phpstan.neon",
+    "phpcs": "@php vendor/bin/phpcs --standard=phpcs.xml.dist",
+    "check": [
+      "@test",
+      "@phpstan",
+      "@phpcs"
+    ]
   }
 }

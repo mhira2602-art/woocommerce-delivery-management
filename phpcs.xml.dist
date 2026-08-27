@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ruleset name="WooCommerce Delivery Management">
+	<description>WordPress Coding Standards for WooCommerce Delivery Management.</description>
+
+	<file>src</file>
+	<file>tests</file>
+	<exclude-pattern>/vendor/*</exclude-pattern>
+
+	<arg name="basepath" value="." />
+	<arg name="colors" />
+	<arg name="extensions" value="php" />
+
+	<rule ref="WordPress" />
+	<!-- PSR-4 class filenames are intentional and match the Composer namespace map. -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase" />
+	</rule>
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName" />
+	</rule>
+</ruleset>

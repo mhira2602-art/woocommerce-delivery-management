@@ -1,4 +1,9 @@
 <?php
+/**
+ * Plugin application bootstrap.
+ *
+ * @package WDM
+ */
 
 declare( strict_types=1 );
 
@@ -11,21 +16,28 @@ use WDM\Support\Container;
  */
 final class Bootstrap {
 	/**
+	 * The service container.
+	 *
 	 * @var Container
 	 */
 	private Container $container;
 
 	/**
+	 * Shared plugin configuration.
+	 *
 	 * @var array<string, mixed>
 	 */
 	private array $config;
 
 	/**
-	 * @param array<string, mixed> $config Shared plugin configuration.
+	 * Create the application bootstrap.
+	 *
+	 * @param Container           $container Service container.
+	 * @param array<string,mixed> $config    Shared plugin configuration.
 	 */
 	public function __construct( Container $container, array $config ) {
 		$this->container = $container;
-		$this->config     = $config;
+		$this->config    = $config;
 	}
 
 	/**
