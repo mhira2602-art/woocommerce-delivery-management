@@ -56,6 +56,16 @@ if ( ! is_readable( $autoload_file ) ) {
 
 require_once $autoload_file;
 
+register_activation_hook(
+	__FILE__,
+	static function (): void {
+		global $wpdb;
+
+		$database = new \WDM\Infrastructure\Database\WordPressDatabase( $wpdb );
+		( new \WDM\Infrastructure\Database\SchemaManager( $database ) )->install();
+	}
+);
+
 add_action(
 	'plugins_loaded',
 	static function (): void {
@@ -93,5 +103,10 @@ add_action(
 		);
 
 		$bootstrap->boot();
+
+		$schema = new \WDM\Infrastructure\Database\SchemaManager(
+			new \WDM\Infrastructure\Database\WordPressDatabase( $GLOBALS['wpdb'] )
+		);
+		$schema->upgradeIfNeeded();
 	}
 );

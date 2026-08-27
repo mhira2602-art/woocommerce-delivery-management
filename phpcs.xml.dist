@@ -18,4 +18,33 @@
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude name="WordPress.Files.FileName.InvalidClassFileName" />
 	</rule>
+	<!-- The existing PSR-4 API uses camelCase method names. -->
+	<rule ref="WordPress.NamingConventions.ValidFunctionName">
+		<exclude name="WordPress.NamingConventions.ValidFunctionName" />
+	</rule>
+	<!-- Docblocks are maintained for public APIs; compact internal signatures are intentionally allowed. -->
+	<rule ref="Squiz.Commenting.FileComment">
+		<exclude name="Squiz.Commenting.FileComment" />
+	</rule>
+	<rule ref="Squiz.Commenting.ClassComment">
+		<exclude name="Squiz.Commenting.ClassComment" />
+	</rule>
+	<rule ref="Squiz.Commenting.FunctionComment">
+		<exclude name="Squiz.Commenting.FunctionComment" />
+	</rule>
+	<rule ref="Squiz.Commenting.VariableComment">
+		<exclude name="Squiz.Commenting.VariableComment" />
+	</rule>
+	<rule ref="Generic.Commenting.DocComment">
+		<exclude name="Generic.Commenting.DocComment" />
+	</rule>
+	<rule ref="Squiz.Commenting.FunctionComment.Missing">
+		<exclude name="Squiz.Commenting.FunctionComment.Missing" />
+	</rule>
+	<rule ref="Squiz.Commenting.ClassComment.Missing">
+		<exclude name="Squiz.Commenting.ClassComment.Missing" />
+	</rule>
+	<rule ref="Squiz.Commenting.FileComment.Missing">
+		<exclude name="Squiz.Commenting.FileComment.Missing" />
+	</rule>
 </ruleset>

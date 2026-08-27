@@ -9,6 +9,13 @@ declare( strict_types=1 );
 
 namespace WDM\Application;
 
+use WDM\Infrastructure\Database\SchemaManager;
+use WDM\Infrastructure\Database\WordPressDatabase;
+use WDM\Infrastructure\Repository\DeliveryRepository;
+use WDM\Infrastructure\Repository\DeliveryRuleRepository;
+use WDM\Infrastructure\Repository\DeliveryStatusHistoryRepository;
+use WDM\Infrastructure\Repository\DriverRepository;
+use WDM\Infrastructure\Repository\WarehouseRepository;
 use WDM\Support\Container;
 
 /**
@@ -46,6 +53,44 @@ final class Bootstrap {
 	public function boot(): void {
 		$this->container->set( 'wdm.config', $this->config );
 		$this->container->set( self::class, $this );
+
+		if ( isset( $GLOBALS['wpdb'] ) && is_object( $GLOBALS['wpdb'] ) ) {
+			$database = new WordPressDatabase( $GLOBALS['wpdb'] );
+			$schema   = new SchemaManager( $database );
+
+			$this->container->set( WordPressDatabase::class, $database );
+			$this->container->set( SchemaManager::class, $schema );
+			$this->container->factory(
+				DeliveryRepository::class,
+				static function ( Container $container ): DeliveryRepository {
+					return new DeliveryRepository( $container->get( WordPressDatabase::class ) );
+				}
+			);
+			$this->container->factory(
+				DriverRepository::class,
+				static function ( Container $container ): DriverRepository {
+					return new DriverRepository( $container->get( WordPressDatabase::class ) );
+				}
+			);
+			$this->container->factory(
+				WarehouseRepository::class,
+				static function ( Container $container ): WarehouseRepository {
+					return new WarehouseRepository( $container->get( WordPressDatabase::class ) );
+				}
+			);
+			$this->container->factory(
+				DeliveryRuleRepository::class,
+				static function ( Container $container ): DeliveryRuleRepository {
+					return new DeliveryRuleRepository( $container->get( WordPressDatabase::class ) );
+				}
+			);
+			$this->container->factory(
+				DeliveryStatusHistoryRepository::class,
+				static function ( Container $container ): DeliveryStatusHistoryRepository {
+					return new DeliveryStatusHistoryRepository( $container->get( WordPressDatabase::class ) );
+				}
+			);
+		}
 	}
 
 	/**
