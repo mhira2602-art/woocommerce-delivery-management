@@ -4,9 +4,10 @@ declare( strict_types=1 );
 namespace WDM\Infrastructure\Repository;
 
 use WDM\Infrastructure\Database\DatabaseInterface;
+use WDM\Application\Contract\DeliveryStore;
 
 /** Persists delivery records without owning delivery business rules. */
-final class DeliveryRepository extends AbstractRepository {
+final class DeliveryRepository extends AbstractRepository implements DeliveryStore {
 	/** @param DatabaseInterface $database Database API boundary. */
 	public function __construct( DatabaseInterface $database ) {
 		parent::__construct( $database, $database->getPrefix() . 'wdm_deliveries', array( 'order_id', 'driver_id', 'warehouse_id', 'region', 'status', 'scheduled_date', 'estimated_date', 'actual_date', 'time_slot', 'delivery_charge', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'notes', 'created_at', 'updated_at' ) );

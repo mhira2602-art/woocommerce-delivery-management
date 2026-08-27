@@ -4,8 +4,9 @@ declare( strict_types=1 );
 namespace WDM\Infrastructure\Repository;
 
 use WDM\Infrastructure\Database\DatabaseInterface;
+use WDM\Application\Contract\DeliveryRuleStore;
 /** Persists delivery rule definitions for a future rule engine. */
-final class DeliveryRuleRepository extends AbstractRepository {
+final class DeliveryRuleRepository extends AbstractRepository implements DeliveryRuleStore {
 	public function __construct( DatabaseInterface $database ) {
 		parent::__construct( $database, $database->getPrefix() . 'wdm_delivery_rules', array( 'region', 'warehouse_id', 'weekday', 'cutoff_time', 'delivery_slot', 'holiday_date', 'delivery_days', 'priority', 'conditions', 'is_active', 'created_at', 'updated_at' ) ); }
 	/** @param array<string,mixed> $data @return int */

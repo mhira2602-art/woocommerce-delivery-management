@@ -4,8 +4,9 @@ declare( strict_types=1 );
 namespace WDM\Infrastructure\Repository;
 
 use WDM\Infrastructure\Database\DatabaseInterface;
+use WDM\Application\Contract\StatusHistoryStore;
 /** Persists the append-only audit trail for delivery status changes. */
-final class DeliveryStatusHistoryRepository extends AbstractRepository {
+final class DeliveryStatusHistoryRepository extends AbstractRepository implements StatusHistoryStore {
 	public function __construct( DatabaseInterface $database ) {
 		parent::__construct( $database, $database->getPrefix() . 'wdm_delivery_status_history', array( 'delivery_id', 'previous_status', 'new_status', 'actor_user_id', 'note', 'created_at' ) ); }
 	/** @param array<string,mixed> $data @return int */

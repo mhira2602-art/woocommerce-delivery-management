@@ -31,6 +31,9 @@ final class RecordingDatabase implements DatabaseInterface {
 	public function getPrefix(): string {
 		return $this->prefix;
 	}
+	public function begin(): void {}
+	public function commit(): void {}
+	public function rollback(): void {}
 
 	public function prepare( string $query, ...$args ): string {
 		$this->last_prepared_query = preg_replace_callback(

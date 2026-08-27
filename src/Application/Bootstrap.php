@@ -61,6 +61,31 @@ final class Bootstrap {
 			$this->container->set( WordPressDatabase::class, $database );
 			$this->container->set( SchemaManager::class, $schema );
 			$this->container->factory(
+				DeliveryService::class,
+				static function ( Container $container ): DeliveryService {
+					return new DeliveryService( $container->get( DeliveryRepository::class ), $container->get( DriverRepository::class ), $container->get( WarehouseRepository::class ), $container->get( DeliveryStatusHistoryRepository::class ), $container->get( WordPressDatabase::class ) );
+				}
+			);
+			$this->container->factory(
+				DriverService::class,
+				static function ( Container $container ): DriverService {
+					return new DriverService( $container->get( DriverRepository::class ) );
+				}
+			);
+			$this->container->factory(
+				WarehouseService::class,
+				static function ( Container $container ): WarehouseService {
+					return new WarehouseService( $container->get( WarehouseRepository::class ) );
+				}
+			);
+			$this->container->factory(
+				DeliveryRuleService::class,
+				static function ( Container $container ): DeliveryRuleService {
+					return new DeliveryRuleService( $container->get( DeliveryRuleRepository::class ) );
+				}
+			);
+			$this->container->set( DeliveryDateCalculator::class, new DeliveryDateCalculator() );
+			$this->container->factory(
 				DeliveryRepository::class,
 				static function ( Container $container ): DeliveryRepository {
 					return new DeliveryRepository( $container->get( WordPressDatabase::class ) );

@@ -4,8 +4,9 @@ declare( strict_types=1 );
 namespace WDM\Infrastructure\Repository;
 
 use WDM\Infrastructure\Database\DatabaseInterface;
+use WDM\Application\Contract\DriverStore;
 /** Persists driver records. */
-final class DriverRepository extends AbstractRepository {
+final class DriverRepository extends AbstractRepository implements DriverStore {
 	public function __construct( DatabaseInterface $database ) {
 		parent::__construct( $database, $database->getPrefix() . 'wdm_drivers', array( 'name', 'email', 'phone', 'status', 'employee_reference', 'created_at', 'updated_at' ) ); }
 	/** @param array<string,mixed> $data @return int */

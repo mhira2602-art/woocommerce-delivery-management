@@ -14,7 +14,7 @@ use InvalidArgumentException;
 /**
  * Keeps direct wpdb interaction in one infrastructure boundary.
  */
-final class WordPressDatabase implements DatabaseInterface {
+final class WordPressDatabase implements DatabaseInterface, \WDM\Application\Contract\TransactionManager {
 	/**
 	 * WordPress database object.
 	 *
@@ -39,6 +39,13 @@ final class WordPressDatabase implements DatabaseInterface {
 	public function getPrefix(): string {
 		return (string) $this->wpdb->prefix;
 	}
+
+	public function begin(): void {
+		$this->query( 'START TRANSACTION' ); }
+	public function commit(): void {
+		$this->query( 'COMMIT' ); }
+	public function rollback(): void {
+		$this->query( 'ROLLBACK' ); }
 
 	public function prepare( string $query, ...$args ): string {
 		$prepared = call_user_func_array( array( $this->wpdb, 'prepare' ), array_merge( array( $query ), $args ) );

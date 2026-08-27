@@ -4,8 +4,9 @@ declare( strict_types=1 );
 namespace WDM\Infrastructure\Repository;
 
 use WDM\Infrastructure\Database\DatabaseInterface;
+use WDM\Application\Contract\WarehouseStore;
 /** Persists warehouse records. */
-final class WarehouseRepository extends AbstractRepository {
+final class WarehouseRepository extends AbstractRepository implements WarehouseStore {
 	public function __construct( DatabaseInterface $database ) {
 		parent::__construct( $database, $database->getPrefix() . 'wdm_warehouses', array( 'name', 'code', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'region', 'status', 'created_at', 'updated_at' ) ); }
 	/** @param array<string,mixed> $data @return int */

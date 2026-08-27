@@ -13,6 +13,9 @@ namespace WDM\Infrastructure\Database;
  * Small boundary around WordPress's wpdb API.
  */
 interface DatabaseInterface {
+	public function begin(): void;
+	public function commit(): void;
+	public function rollback(): void;
 	/**
 	 * Get the WordPress database prefix.
 	 */
