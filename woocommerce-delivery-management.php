@@ -67,6 +67,18 @@ register_activation_hook(
 );
 
 add_action(
+	'before_woocommerce_init',
+	static function (): void {
+		if ( ! class_exists( '\\Automattic\\WooCommerce\\Utilities\\FeaturesUtil' ) ) {
+			return;
+		}
+
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, false );
+	}
+);
+
+add_action(
 	'plugins_loaded',
 	static function (): void {
 		if ( ! class_exists( 'WooCommerce' ) ) {
@@ -108,5 +120,9 @@ add_action(
 			new \WDM\Infrastructure\Database\WordPressDatabase( $GLOBALS['wpdb'] )
 		);
 		$schema->upgradeIfNeeded();
+
+		if ( $container->has( \WDM\Integration\WooCommerceHooks::class ) ) {
+			$container->get( \WDM\Integration\WooCommerceHooks::class )->register();
+		}
 	}
 );

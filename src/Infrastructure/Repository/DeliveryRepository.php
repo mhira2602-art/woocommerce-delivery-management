@@ -10,7 +10,7 @@ use WDM\Application\Contract\DeliveryStore;
 final class DeliveryRepository extends AbstractRepository implements DeliveryStore {
 	/** @param DatabaseInterface $database Database API boundary. */
 	public function __construct( DatabaseInterface $database ) {
-		parent::__construct( $database, $database->getPrefix() . 'wdm_deliveries', array( 'order_id', 'driver_id', 'warehouse_id', 'region', 'status', 'scheduled_date', 'estimated_date', 'actual_date', 'time_slot', 'delivery_charge', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'notes', 'created_at', 'updated_at' ) );
+		parent::__construct( $database, $database->getPrefix() . 'wdm_deliveries', array( 'order_id', 'driver_id', 'warehouse_id', 'region', 'status', 'scheduled_date', 'estimated_date', 'actual_date', 'time_slot', 'delivery_charge', 'first_name', 'last_name', 'company', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'phone', 'notes', 'created_at', 'updated_at' ) );
 	}
 
 	/** @param array<string,mixed> $data @return int */
@@ -30,7 +30,7 @@ final class DeliveryRepository extends AbstractRepository implements DeliverySto
 	/** @return array<string,mixed>|null */
 	public function findByOrderId( int $order_id ): ?array {
 		$this->requireId( $order_id );
-		return $this->database->getRow( $this->database->prepare( "SELECT id, order_id, driver_id, warehouse_id, region, status, scheduled_date, estimated_date, actual_date, time_slot, delivery_charge, address_line_1, address_line_2, city, state, postcode, country, notes, created_at, updated_at FROM {$this->table} WHERE order_id = %d", $order_id ) );
+		return $this->database->getRow( $this->database->prepare( "SELECT id, order_id, driver_id, warehouse_id, region, status, scheduled_date, estimated_date, actual_date, time_slot, delivery_charge, first_name, last_name, company, address_line_1, address_line_2, city, state, postcode, country, phone, notes, created_at, updated_at FROM {$this->table} WHERE order_id = %d", $order_id ) );
 	}
 
 	/** @param array<string,mixed> $data */

@@ -46,6 +46,13 @@ final class DeliveryService {
 		if ( null === $record ) {
 			throw new NotFoundException( 'Delivery not found.' );
 		} return new Delivery( $record ); }
+	/** @return Delivery|null */
+	public function findByOrderId( int $order_id ): ?Delivery {
+		$record = $this->deliveries->findByOrderId( $order_id );
+		if ( null === $record ) {
+			return null;
+		}
+		return new Delivery( $record ); }
 	/**
 	 * Update a delivery.
 	 *

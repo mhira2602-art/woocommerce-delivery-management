@@ -16,6 +16,10 @@ use WDM\Infrastructure\Repository\DeliveryRuleRepository;
 use WDM\Infrastructure\Repository\DeliveryStatusHistoryRepository;
 use WDM\Infrastructure\Repository\DriverRepository;
 use WDM\Infrastructure\Repository\WarehouseRepository;
+use WDM\Integration\WooCommerceDeliveryIntegration;
+use WDM\Integration\WooCommerceHooks;
+use WDM\Integration\WooCommerceOrderEligibility;
+use WDM\Integration\WooCommerceOrderGateway;
 use WDM\Support\Container;
 
 /**
@@ -64,6 +68,30 @@ final class Bootstrap {
 				DeliveryService::class,
 				static function ( Container $container ): DeliveryService {
 					return new DeliveryService( $container->get( DeliveryRepository::class ), $container->get( DriverRepository::class ), $container->get( WarehouseRepository::class ), $container->get( DeliveryStatusHistoryRepository::class ), $container->get( WordPressDatabase::class ) );
+				}
+			);
+			$this->container->factory(
+				WooCommerceOrderGateway::class,
+				static function (): WooCommerceOrderGateway {
+					return new WooCommerceOrderGateway();
+				}
+			);
+			$this->container->factory(
+				WooCommerceOrderEligibility::class,
+				static function (): WooCommerceOrderEligibility {
+					return new WooCommerceOrderEligibility();
+				}
+			);
+			$this->container->factory(
+				WooCommerceDeliveryIntegration::class,
+				static function ( Container $container ): WooCommerceDeliveryIntegration {
+					return new WooCommerceDeliveryIntegration( $container->get( DeliveryService::class ), $container->get( WooCommerceOrderGateway::class ), $container->get( WooCommerceOrderEligibility::class ), $container->get( DeliveryDateCalculator::class ) );
+				}
+			);
+			$this->container->factory(
+				WooCommerceHooks::class,
+				static function ( Container $container ): WooCommerceHooks {
+					return new WooCommerceHooks( $container->get( WooCommerceDeliveryIntegration::class ) );
 				}
 			);
 			$this->container->factory(

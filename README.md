@@ -20,6 +20,14 @@ This project is in active development. The foundation and database persistence l
 3. Activate the plugin from the WordPress admin Plugins screen.
 4. Ensure WooCommerce is installed and active.
 
+## WooCommerce Integration
+
+The plugin is structured to work with WooCommerce without hard-coding WooCommerce internals into the delivery domain. When WooCommerce is active, the plugin registers a small integration layer that listens for order lifecycle events, checks whether the order is physical and eligible, and then creates a delivery via the existing application service.
+
+The integration uses the public WooCommerce APIs (`wc_get_order()`, `WC_Order`, and order getters) and is compatible with HPOS by avoiding direct reads from `wp_posts`, `wp_postmeta`, or WooCommerce's internal table structure. The delivery record stores only the operational order ID and delivery data it actually needs.
+
+Idempotency is enforced at the application layer and in the delivery schema by requiring a unique `order_id` per delivery. Repeated WooCommerce events will not create duplicate deliveries.
+
 ## Development
 
 Install Composer dependencies from the plugin directory:

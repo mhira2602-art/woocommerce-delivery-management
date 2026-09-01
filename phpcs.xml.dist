@@ -22,6 +22,10 @@
 	<rule ref="WordPress.NamingConventions.ValidFunctionName">
 		<exclude name="WordPress.NamingConventions.ValidFunctionName" />
 	</rule>
+	<!-- Test support classes are intentionally grouped in a single stub file for the contract harness. -->
+	<rule ref="Generic.Files.OneObjectStructurePerFile">
+		<exclude name="Generic.Files.OneObjectStructurePerFile" />
+	</rule>
 	<!-- Docblocks are maintained for public APIs; compact internal signatures are intentionally allowed. -->
 	<rule ref="Squiz.Commenting.FileComment">
 		<exclude name="Squiz.Commenting.FileComment" />

@@ -15,7 +15,7 @@ use RuntimeException;
  * Creates and upgrades plugin-owned operational tables.
  */
 final class SchemaManager {
-	public const VERSION = '1.0.0';
+	public const VERSION = '1.0.1';
 	public const OPTION  = 'wdm_schema_version';
 
 	/** @var DatabaseInterface */
@@ -125,16 +125,20 @@ final class SchemaManager {
 			actual_date date NULL,
 			time_slot varchar(100) NOT NULL DEFAULT '',
 			delivery_charge decimal(19,4) NOT NULL DEFAULT 0.0000,
+			first_name varchar(100) NOT NULL DEFAULT '',
+			last_name varchar(100) NOT NULL DEFAULT '',
+			company varchar(190) NOT NULL DEFAULT '',
 			address_line_1 varchar(255) NOT NULL DEFAULT '',
 			address_line_2 varchar(255) NOT NULL DEFAULT '',
 			city varchar(100) NOT NULL DEFAULT '',
 			state varchar(100) NOT NULL DEFAULT '',
 			postcode varchar(30) NOT NULL DEFAULT '',
 			country varchar(2) NOT NULL DEFAULT '',
+			phone varchar(50) NOT NULL DEFAULT '',
 			notes text NULL,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL,
-			PRIMARY KEY  (id), KEY order_id (order_id), KEY status_date (status, scheduled_date), KEY driver_date (driver_id, scheduled_date), KEY warehouse_date (warehouse_id, scheduled_date), KEY region_date (region, scheduled_date)
+			PRIMARY KEY  (id), UNIQUE KEY order_id (order_id), KEY status_date (status, scheduled_date), KEY driver_date (driver_id, scheduled_date), KEY warehouse_date (warehouse_id, scheduled_date), KEY region_date (region, scheduled_date)
 		) {$charset};
 		CREATE TABLE {$tables['drivers']} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
