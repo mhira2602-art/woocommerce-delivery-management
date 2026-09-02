@@ -72,6 +72,14 @@ final class RecordingDatabase implements DatabaseInterface {
 		) : null;
 	}
 
+	public function getVar( string $query ) {
+		if ( false !== strpos( $query, 'COUNT(*)' ) ) {
+			return 1;
+		}
+
+		return 0;
+	}
+
 	public function getResults( string $query ): array {
 		return false !== strpos( $query, 'delivery_id = 17' ) ? array(
 			array(

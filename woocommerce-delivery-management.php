@@ -102,6 +102,7 @@ add_action(
 		}
 
 		$container = new \WDM\Support\Container();
+		$GLOBALS['wdm_container'] = $container;
 		$bootstrap = new \WDM\Application\Bootstrap(
 			$container,
 			array(
@@ -124,5 +125,8 @@ add_action(
 		if ( $container->has( \WDM\Integration\WooCommerceHooks::class ) ) {
 			$container->get( \WDM\Integration\WooCommerceHooks::class )->register();
 		}
+
+		$admin_bootstrap = new \WDM\Admin\AdminBootstrap( $container );
+		$admin_bootstrap->register();
 	}
 );

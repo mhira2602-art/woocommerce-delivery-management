@@ -29,4 +29,48 @@ final class DriverRepository extends AbstractRepository implements DriverStore {
 	/** @return array<int,array<string,mixed>> */
 	public function findByStatus( string $status ): array {
 		return $this->database->getResults( $this->database->prepare( "SELECT id, name, email, phone, status, employee_reference, created_at, updated_at FROM {$this->table} WHERE status = %s ORDER BY name ASC", $status ) ); }
+
+	/**
+	 * @param array<string,mixed> $filters Optional status filter.
+	 * @return array<int,array<string,mixed>>
+	 */
+	public function findAll( int $limit = 20, int $offset = 0, array $filters = array() ): array {
+		$limit  = max( 1, min( 500, $limit ) );
+		$offset = max( 0, $offset );
+		$where  = array();
+		$args   = array();
+
+		if ( isset( $filters['status'] ) && '' !== (string) $filters['status'] ) {
+			$where[] = 'status = %s';
+			$args[]  = (string) $filters['status'];
+		}
+
+		$query = "SELECT id, name, email, phone, status, employee_reference, created_at, updated_at FROM {$this->table}";
+		if ( ! empty( $where ) ) {
+			$query .= ' WHERE ' . implode( ' AND ', $where );
+		}
+		$query .= ' ORDER BY name ASC LIMIT %d OFFSET %d';
+		$args[] = $limit;
+		$args[] = $offset;
+
+		return $this->database->getResults( $this->database->prepare( $query, ...$args ) );
+	}
+
+	/** @param array<string,mixed> $filters Optional status filter. */
+	public function countAll( array $filters = array() ): int {
+		$where = array();
+		$args  = array();
+
+		if ( isset( $filters['status'] ) && '' !== (string) $filters['status'] ) {
+			$where[] = 'status = %s';
+			$args[]  = (string) $filters['status'];
+		}
+
+		$query = "SELECT COUNT(*) FROM {$this->table}";
+		if ( ! empty( $where ) ) {
+			$query .= ' WHERE ' . implode( ' AND ', $where );
+		}
+
+		return (int) $this->database->getVar( $this->database->prepare( $query, ...$args ) );
+	}
 }

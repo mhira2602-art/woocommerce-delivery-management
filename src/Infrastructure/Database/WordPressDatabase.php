@@ -77,6 +77,11 @@ final class WordPressDatabase implements DatabaseInterface, \WDM\Application\Con
 		return is_array( $row ) ? $row : null;
 	}
 
+	public function getVar( string $query ) {
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Repository queries are prepared before crossing this boundary.
+		return $this->wpdb->get_var( $query );
+	}
+
 	public function getResults( string $query ): array {
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Repository queries are prepared before crossing this boundary.
 		$rows = $this->wpdb->get_results( $query, 'ARRAY_A' );

@@ -29,4 +29,58 @@ final class DeliveryRuleRepository extends AbstractRepository implements Deliver
 	/** @return array<int,array<string,mixed>> */
 	public function findActiveByRegion( string $region ): array {
 		return $this->database->getResults( $this->database->prepare( "SELECT id, region, warehouse_id, weekday, cutoff_time, delivery_slot, holiday_date, delivery_days, priority, conditions, is_active, created_at, updated_at FROM {$this->table} WHERE region = %s AND is_active = 1 ORDER BY priority DESC, id ASC", $region ) ); }
+
+	/**
+	 * @param array<string,mixed> $filters Optional region/status filters.
+	 * @return array<int,array<string,mixed>>
+	 */
+	public function findAll( int $limit = 20, int $offset = 0, array $filters = array() ): array {
+		$limit  = max( 1, min( 500, $limit ) );
+		$offset = max( 0, $offset );
+		$where  = array();
+		$args   = array();
+
+		if ( isset( $filters['region'] ) && '' !== trim( (string) $filters['region'] ) ) {
+			$where[] = 'region = %s';
+			$args[]  = trim( (string) $filters['region'] );
+		}
+
+		if ( isset( $filters['is_active'] ) ) {
+			$where[] = 'is_active = %d';
+			$args[]  = (int) $filters['is_active'];
+		}
+
+		$query = "SELECT id, region, warehouse_id, weekday, cutoff_time, delivery_slot, holiday_date, delivery_days, priority, conditions, is_active, created_at, updated_at FROM {$this->table}";
+		if ( ! empty( $where ) ) {
+			$query .= ' WHERE ' . implode( ' AND ', $where );
+		}
+		$query .= ' ORDER BY priority DESC, id DESC LIMIT %d OFFSET %d';
+		$args[] = $limit;
+		$args[] = $offset;
+
+		return $this->database->getResults( $this->database->prepare( $query, ...$args ) );
+	}
+
+	/** @param array<string,mixed> $filters Optional region/status filters. */
+	public function countAll( array $filters = array() ): int {
+		$where = array();
+		$args  = array();
+
+		if ( isset( $filters['region'] ) && '' !== trim( (string) $filters['region'] ) ) {
+			$where[] = 'region = %s';
+			$args[]  = trim( (string) $filters['region'] );
+		}
+
+		if ( isset( $filters['is_active'] ) ) {
+			$where[] = 'is_active = %d';
+			$args[]  = (int) $filters['is_active'];
+		}
+
+		$query = "SELECT COUNT(*) FROM {$this->table}";
+		if ( ! empty( $where ) ) {
+			$query .= ' WHERE ' . implode( ' AND ', $where );
+		}
+
+		return (int) $this->database->getVar( $this->database->prepare( $query, ...$args ) );
+	}
 }

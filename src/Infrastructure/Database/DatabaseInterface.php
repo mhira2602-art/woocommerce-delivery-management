@@ -73,6 +73,13 @@ interface DatabaseInterface {
 	public function getRow( string $query ): ?array;
 
 	/**
+	 * Retrieve a single scalar value.
+	 *
+	 * @return mixed
+	 */
+	public function getVar( string $query );
+
+	/**
 	 * Retrieve multiple rows as associative arrays.
 	 *
 	 * @return array<int,array<string,mixed>>

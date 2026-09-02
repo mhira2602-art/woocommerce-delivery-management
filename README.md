@@ -28,6 +28,12 @@ The integration uses the public WooCommerce APIs (`wc_get_order()`, `WC_Order`, 
 
 Idempotency is enforced at the application layer and in the delivery schema by requiring a unique `order_id` per delivery. Repeated WooCommerce events will not create duplicate deliveries.
 
+## Admin UI
+
+Milestone 6 adds a WordPress admin interface for operational delivery management. The plugin registers a Delivery Management menu with dashboard, deliveries, drivers, warehouses, and delivery rules screens. The admin layer validates requests, verifies nonces and capabilities, and delegates all business work to the existing application services.
+
+For installation, security, and request flow details, see `docs/admin.md`.
+
 ## Development
 
 Install Composer dependencies from the plugin directory:

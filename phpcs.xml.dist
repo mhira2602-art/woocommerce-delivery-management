@@ -5,10 +5,12 @@
 	<file>src</file>
 	<file>tests</file>
 	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/stubs/*</exclude-pattern>
 
 	<arg name="basepath" value="." />
 	<arg name="colors" />
 	<arg name="extensions" value="php" />
+	<config name="custom_capabilities" value="wdm_view_deliveries,wdm_manage_deliveries,wdm_manage_drivers,wdm_manage_warehouses,wdm_manage_delivery_rules" />
 
 	<rule ref="WordPress" />
 	<!-- PSR-4 class filenames are intentional and match the Composer namespace map. -->
