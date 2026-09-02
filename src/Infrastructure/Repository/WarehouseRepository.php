@@ -52,10 +52,11 @@ final class WarehouseRepository extends AbstractRepository implements WarehouseS
 
 		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
 			$search  = trim( (string) $filters['search'] );
+			$like    = '%' . $this->database->escapeLike( $search ) . '%';
 			$where[] = '(name LIKE %s OR city LIKE %s OR region LIKE %s)';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
 		}
 
 		$query = "SELECT id, name, code, address_line_1, address_line_2, city, state, postcode, country, region, status, created_at, updated_at FROM {$this->table}";
@@ -86,10 +87,11 @@ final class WarehouseRepository extends AbstractRepository implements WarehouseS
 
 		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
 			$search  = trim( (string) $filters['search'] );
+			$like    = '%' . $this->database->escapeLike( $search ) . '%';
 			$where[] = '(name LIKE %s OR city LIKE %s OR region LIKE %s)';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
 		}
 
 		$query = "SELECT COUNT(*) FROM {$this->table}";

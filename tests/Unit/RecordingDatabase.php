@@ -31,6 +31,9 @@ final class RecordingDatabase implements DatabaseInterface {
 	public function getPrefix(): string {
 		return $this->prefix;
 	}
+	public function escapeLike( string $value ): string {
+		return str_replace( array( '\\', '%', '_' ), array( '\\\\', '\\%', '\\_' ), $value );
+	}
 	public function begin(): void {}
 	public function commit(): void {}
 	public function rollback(): void {}

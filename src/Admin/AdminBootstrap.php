@@ -13,6 +13,7 @@ use WDM\Application\DeliveryService;
 use WDM\Application\DriverService;
 use WDM\Application\WarehouseService;
 use WDM\Application\DeliveryRuleService;
+use WDM\Domain\Delivery\DeliveryStatus;
 use WDM\Support\Container;
 
 /**
@@ -166,8 +167,11 @@ final class AdminBootstrap {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified centrally in authorize().
 		$id = AdminRequest::intParam( $_POST, 'delivery_id', 0 );
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified centrally in authorize().
-		$status = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : '';
+		$status = isset( $_POST['status'] ) && is_scalar( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : '';
 		if ( $id < 1 || '' === $status ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-deliveries', 'Invalid delivery status request.', false );
+		}
+		if ( ! in_array( $status, DeliveryStatus::all(), true ) ) {
 			$this->redirectWithNotice( 'wdm-delivery-management-deliveries', 'Invalid delivery status request.', false );
 		}
 
@@ -278,15 +282,43 @@ final class AdminBootstrap {
 	public function saveDriver(): void {
 		$this->authorize( 'wdm_manage_drivers', 'wdm_save_driver' );
 
-		$post_email  = filter_input( INPUT_POST, 'email', FILTER_SANITIZE_EMAIL );
-		$post_status = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$id          = AdminRequest::intParam( $_POST, 'id', 0 );
-		$data        = array(
-			'name'               => AdminRequest::textParam( $_POST, 'name' ),
-			'email'              => false === $post_email || null === $post_email ? '' : sanitize_email( wp_unslash( $post_email ) ),
-			'phone'              => AdminRequest::textParam( $_POST, 'phone' ),
-			'employee_reference' => AdminRequest::textParam( $_POST, 'employee_reference' ),
-			'status'             => false === $post_status || null === $post_status ? 'inactive' : sanitize_key( wp_unslash( $post_status ) ),
+		$id            = AdminRequest::intParam( $_POST, 'id', 0 );
+		$name          = AdminRequest::nameParam( $_POST, 'name' );
+		$email         = AdminRequest::emailParam( $_POST, 'email' );
+		$phone         = AdminRequest::phoneParam( $_POST, 'phone' );
+		$status        = AdminRequest::statusParam( $_POST, 'status', array( 'active', 'inactive' ), 'inactive' );
+		$email_raw     = AdminRequest::rawParam( $_POST, 'email' );
+		$phone_raw     = AdminRequest::rawParam( $_POST, 'phone' );
+		$reference     = AdminRequest::referenceParam( $_POST, 'employee_reference' );
+		$reference_raw = AdminRequest::rawParam( $_POST, 'employee_reference' );
+		if ( ( null !== $email_raw && ! is_scalar( $email_raw ) ) || ( null !== $phone_raw && ! is_scalar( $phone_raw ) ) || ( null !== $reference_raw && ! is_scalar( $reference_raw ) ) ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-drivers', 'Please submit valid driver fields.', false );
+		}
+		$email_raw     = trim( (string) wp_unslash( $email_raw ) );
+		$phone_raw     = trim( (string) wp_unslash( $phone_raw ) );
+		$reference_raw = trim( (string) wp_unslash( $reference_raw ) );
+		if ( '' === $name ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-drivers', 'Please enter a valid driver name.', false );
+		}
+		if ( '' !== $email_raw && '' === $email ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-drivers', 'Please enter a valid email address.', false );
+		}
+		if ( '' !== $phone_raw && '' === $phone ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-drivers', 'Phone number must contain exactly 10 digits.', false );
+		}
+		if ( '' !== $reference_raw && '' === $reference ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-drivers', 'Please enter a valid employee reference.', false );
+		}
+		if ( '' === $status ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-drivers', 'Please select a valid status.', false );
+		}
+
+		$data = array(
+			'name'               => $name,
+			'email'              => $email,
+			'phone'              => $phone,
+			'employee_reference' => $reference,
+			'status'             => $status,
 		);
 
 		try {
@@ -309,13 +341,34 @@ final class AdminBootstrap {
 	public function saveWarehouse(): void {
 		$this->authorize( 'wdm_manage_warehouses', 'wdm_save_warehouse' );
 
-		$post_status = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$id          = AdminRequest::intParam( $_POST, 'id', 0 );
-		$data        = array(
-			'name'   => AdminRequest::textParam( $_POST, 'name' ),
-			'code'   => strtoupper( AdminRequest::textParam( $_POST, 'code' ) ),
-			'region' => AdminRequest::textParam( $_POST, 'region' ),
-			'status' => false === $post_status || null === $post_status ? 'inactive' : sanitize_key( wp_unslash( $post_status ) ),
+		$id         = AdminRequest::intParam( $_POST, 'id', 0 );
+		$name       = AdminRequest::labelParam( $_POST, 'name' );
+		$code       = strtoupper( trim( AdminRequest::textParam( $_POST, 'code' ) ) );
+		$region     = AdminRequest::locationParam( $_POST, 'region' );
+		$status     = AdminRequest::statusParam( $_POST, 'status', array( 'active', 'inactive' ), 'inactive' );
+		$region_raw = AdminRequest::rawParam( $_POST, 'region' );
+		if ( null !== $region_raw && ! is_scalar( $region_raw ) ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-warehouses', 'Please submit a valid warehouse region.', false );
+		}
+		$region_raw = trim( (string) wp_unslash( $region_raw ) );
+		if ( '' === $name ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-warehouses', 'Please enter a valid warehouse name.', false );
+		}
+		if ( ! preg_match( '/^[A-Z0-9-]{2,50}$/', $code ) ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-warehouses', 'Please enter a valid warehouse code.', false );
+		}
+		if ( '' !== $region_raw && '' === $region ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-warehouses', 'Please enter a valid warehouse region.', false );
+		}
+		if ( '' === $status ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-warehouses', 'Please select a valid status.', false );
+		}
+
+		$data = array(
+			'name'   => $name,
+			'code'   => $code,
+			'region' => $region,
+			'status' => $status,
 		);
 
 		try {
@@ -338,18 +391,57 @@ final class AdminBootstrap {
 	public function saveRule(): void {
 		$this->authorize( 'wdm_manage_delivery_rules', 'wdm_save_rule' );
 
-		$post_cutoff = filter_input( INPUT_POST, 'cutoff_time', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$post_active = filter_input( INPUT_POST, 'is_active', FILTER_SANITIZE_NUMBER_INT );
-		$id          = AdminRequest::intParam( $_POST, 'id', 0 );
-		$data        = array(
-			'region'        => AdminRequest::textParam( $_POST, 'region' ),
-			'warehouse_id'  => AdminRequest::intParam( $_POST, 'warehouse_id', 0 ),
-			'weekday'       => AdminRequest::intParam( $_POST, 'weekday', 0 ),
-			'cutoff_time'   => false === $post_cutoff || null === $post_cutoff ? '' : sanitize_text_field( wp_unslash( $post_cutoff ) ),
-			'delivery_slot' => AdminRequest::textParam( $_POST, 'delivery_slot' ),
-			'delivery_days' => AdminRequest::textParam( $_POST, 'delivery_days' ),
-			'priority'      => AdminRequest::intParam( $_POST, 'priority', 0 ),
-			'is_active'     => false === $post_active || null === $post_active ? 1 : (int) $post_active,
+		$id            = AdminRequest::intParam( $_POST, 'id', 0 );
+		$region        = AdminRequest::locationParam( $_POST, 'region' );
+		$warehouse_id  = AdminRequest::integerParam( $_POST, 'warehouse_id' );
+		$weekday       = AdminRequest::integerParam( $_POST, 'weekday' );
+		$cutoff_time   = AdminRequest::timeParam( $_POST, 'cutoff_time' );
+		$slot          = AdminRequest::textParam( $_POST, 'delivery_slot' );
+		$days          = AdminRequest::textParam( $_POST, 'delivery_days' );
+		$priority      = AdminRequest::integerParam( $_POST, 'priority', 0 );
+		$is_active     = AdminRequest::integerParam( $_POST, 'is_active', 1 );
+		$region_raw    = AdminRequest::rawParam( $_POST, 'region' );
+		$cutoff_raw    = AdminRequest::rawParam( $_POST, 'cutoff_time' );
+		$active_raw    = AdminRequest::rawParam( $_POST, 'is_active' );
+		$warehouse_raw = AdminRequest::rawParam( $_POST, 'warehouse_id' );
+		$weekday_raw   = AdminRequest::rawParam( $_POST, 'weekday' );
+		$priority_raw  = AdminRequest::rawParam( $_POST, 'priority' );
+		if ( ( null !== $region_raw && ! is_scalar( $region_raw ) ) || ( null !== $cutoff_raw && ! is_scalar( $cutoff_raw ) ) || ( null !== $active_raw && ! is_scalar( $active_raw ) ) || ( null !== $warehouse_raw && ! is_scalar( $warehouse_raw ) ) || ( null !== $weekday_raw && ! is_scalar( $weekday_raw ) ) || ( null !== $priority_raw && ! is_scalar( $priority_raw ) ) ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-rules', 'Please submit valid delivery rule fields.', false );
+		}
+		$region_raw    = trim( (string) wp_unslash( $region_raw ) );
+		$cutoff_raw    = trim( (string) wp_unslash( $cutoff_raw ) );
+		$warehouse_raw = trim( (string) wp_unslash( $warehouse_raw ) );
+		$weekday_raw   = trim( (string) wp_unslash( $weekday_raw ) );
+		$priority_raw  = trim( (string) wp_unslash( $priority_raw ) );
+		$active_raw    = null === $active_raw ? '1' : (string) wp_unslash( $active_raw );
+		if ( '' !== $region_raw && '' === $region ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-rules', 'Please enter a valid rule region.', false );
+		}
+		if ( '' !== $cutoff_raw && '' === $cutoff_time ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-rules', 'Please enter a valid cut-off time.', false );
+		}
+		if ( null === $warehouse_id && '' !== $warehouse_raw ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-rules', 'Please select a valid warehouse.', false );
+		}
+		if ( null === $weekday && '' !== $weekday_raw ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-rules', 'Please enter a valid weekday.', false );
+		}
+		if ( null === $priority || ( null !== $priority_raw && '' === $priority_raw ) ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-rules', 'Please enter a valid rule priority.', false );
+		}
+		if ( null === $is_active || ! in_array( $active_raw, array( '0', '1' ), true ) ) {
+			$this->redirectWithNotice( 'wdm-delivery-management-rules', 'Please select a valid rule status.', false );
+		}
+		$data = array(
+			'region'        => $region,
+			'warehouse_id'  => 0 === $warehouse_id ? null : $warehouse_id,
+			'weekday'       => $weekday,
+			'cutoff_time'   => $cutoff_time,
+			'delivery_slot' => $slot,
+			'delivery_days' => $days,
+			'priority'      => $priority,
+			'is_active'     => $is_active,
 		);
 
 		try {

@@ -69,11 +69,12 @@ final class DeliveryRepository extends AbstractRepository implements DeliverySto
 
 		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
 			$search  = trim( (string) $filters['search'] );
+			$like    = '%' . $this->database->escapeLike( $search ) . '%';
 			$where[] = '(CAST(order_id AS CHAR) LIKE %s OR CAST(id AS CHAR) LIKE %s OR first_name LIKE %s OR last_name LIKE %s)';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
 		}
 
 		$query = "SELECT id, order_id, driver_id, warehouse_id, region, status, scheduled_date, estimated_date, actual_date, time_slot, delivery_charge, created_at, updated_at FROM {$this->table}";
@@ -101,11 +102,12 @@ final class DeliveryRepository extends AbstractRepository implements DeliverySto
 
 		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
 			$search  = trim( (string) $filters['search'] );
+			$like    = '%' . $this->database->escapeLike( $search ) . '%';
 			$where[] = '(CAST(order_id AS CHAR) LIKE %s OR CAST(id AS CHAR) LIKE %s OR first_name LIKE %s OR last_name LIKE %s)';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
 		}
 
 		$query = "SELECT COUNT(*) FROM {$this->table}";

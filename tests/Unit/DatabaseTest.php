@@ -100,6 +100,13 @@ final class DatabaseTest extends TestCase {
 		$this->assertStringContainsString( 'phone LIKE %smith%', $database->last_prepared_query );
 	}
 
+	public function test_repository_escapes_like_wildcards(): void {
+		$database = new RecordingDatabase();
+		( new DriverRepository( $database ) )->findAll( 20, 0, array( 'search' => '100%_match' ) );
+
+		$this->assertStringContainsString( '100\\%\\_match', $database->last_prepared_query );
+	}
+
 	public function test_warehouse_repository_searches_server_side(): void {
 		$database   = new RecordingDatabase();
 		$repository = new WarehouseRepository( $database );

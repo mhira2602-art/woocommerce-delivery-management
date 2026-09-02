@@ -49,6 +49,13 @@ final class DeliveryRuleRepository extends AbstractRepository implements Deliver
 			$where[] = 'is_active = %d';
 			$args[]  = (int) $filters['is_active'];
 		}
+		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
+			$like    = '%' . $this->database->escapeLike( trim( (string) $filters['search'] ) ) . '%';
+			$where[] = '(region LIKE %s OR delivery_slot LIKE %s OR delivery_days LIKE %s)';
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
+		}
 
 		$query = "SELECT id, region, warehouse_id, weekday, cutoff_time, delivery_slot, holiday_date, delivery_days, priority, conditions, is_active, created_at, updated_at FROM {$this->table}";
 		if ( ! empty( $where ) ) {
@@ -74,6 +81,13 @@ final class DeliveryRuleRepository extends AbstractRepository implements Deliver
 		if ( isset( $filters['is_active'] ) ) {
 			$where[] = 'is_active = %d';
 			$args[]  = (int) $filters['is_active'];
+		}
+		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
+			$like    = '%' . $this->database->escapeLike( trim( (string) $filters['search'] ) ) . '%';
+			$where[] = '(region LIKE %s OR delivery_slot LIKE %s OR delivery_days LIKE %s)';
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
 		}
 
 		$query = "SELECT COUNT(*) FROM {$this->table}";

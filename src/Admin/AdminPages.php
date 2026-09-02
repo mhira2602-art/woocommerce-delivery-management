@@ -13,6 +13,7 @@ use WDM\Application\DeliveryRuleService;
 use WDM\Application\DeliveryService;
 use WDM\Application\DriverService;
 use WDM\Application\WarehouseService;
+use WDM\Domain\Delivery\DeliveryStatus;
 use WDM\Infrastructure\Database\WordPressDatabase;
 use WDM\Infrastructure\Repository\DeliveryRepository;
 use WDM\Infrastructure\Repository\DeliveryRuleRepository;
@@ -73,12 +74,13 @@ final class AdminPages {
 	 * Render the deliveries list screen.
 	 */
 	public static function deliveries(): void {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only search and filter values are used for listing, not mutation.
-		$repo          = self::deliveryRepository();
-		$status_filter = self::stringParam( 'status' );
-		$search        = self::stringParam( 's' );
+		$repo = self::deliveryRepository();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only status filter is not state-changing.
+		$status_filter = AdminRequest::statusParam( $_GET, 'status', DeliveryStatus::all(), '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only search is not state-changing.
+		$search = AdminRequest::searchParam( $_GET, 's' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only pagination args are not state-changing.
-		$page       = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
+		$page       = AdminRequest::pageParam( $_GET, 'paged', 1 );
 		$per_page   = 20;
 		$offset     = ( $page - 1 ) * $per_page;
 		$total      = $repo->countAll(
@@ -222,10 +224,11 @@ final class AdminPages {
 	 * Render the driver management screen.
 	 */
 	public static function drivers(): void {
-		$repo   = self::driverRepository();
-		$search = self::stringParam( 's' );
+		$repo = self::driverRepository();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only search is not state-changing.
+		$search = AdminRequest::searchParam( $_GET, 's' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- list pagination is read-only and not a mutation.
-		$page     = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
+		$page     = AdminRequest::pageParam( $_GET, 'paged', 1 );
 		$per_page = 20;
 		$offset   = ( $page - 1 ) * $per_page;
 		$total    = $repo->countAll(
@@ -266,10 +269,11 @@ final class AdminPages {
 	 * Render the warehouse management screen.
 	 */
 	public static function warehouses(): void {
-		$repo   = self::warehouseRepository();
-		$search = self::stringParam( 's' );
+		$repo = self::warehouseRepository();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only search is not state-changing.
+		$search = AdminRequest::searchParam( $_GET, 's' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- list pagination is read-only and not a mutation.
-		$page       = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
+		$page       = AdminRequest::pageParam( $_GET, 'paged', 1 );
 		$per_page   = 20;
 		$offset     = ( $page - 1 ) * $per_page;
 		$warehouses = $repo->findAll( $per_page, $offset, array( 'search' => $search ) );
@@ -306,12 +310,14 @@ final class AdminPages {
 	 */
 	public static function rules(): void {
 		$repo = self::ruleRepository();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only search is not state-changing.
+		$search = AdminRequest::searchParam( $_GET, 's' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- list pagination is read-only and not a mutation.
-		$page     = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
+		$page     = AdminRequest::pageParam( $_GET, 'paged', 1 );
 		$per_page = 20;
 		$offset   = ( $page - 1 ) * $per_page;
-		$rules    = $repo->findAll( $per_page, $offset );
-		$total    = $repo->countAll();
+		$rules    = $repo->findAll( $per_page, $offset, array( 'search' => $search ) );
+		$total    = $repo->countAll( array( 'search' => $search ) );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- edit selection is a read-only screen parameter.
 		$editing  = AdminRequest::intParam( $_GET, 'edit_id', 0 );
 		$existing = $editing > 0 ? $repo->findById( $editing ) : null;
@@ -332,7 +338,7 @@ final class AdminPages {
 		echo '<tr><th><label for="wdm_rule_priority">Priority</label></th><td><input id="wdm_rule_priority" name="priority" type="number" min="0" value="' . esc_attr( (string) ( $existing['priority'] ?? 0 ) ) . '" /></td></tr>';
 		echo '<tr><th><label for="wdm_rule_active">Active</label></th><td><select id="wdm_rule_active" name="is_active"><option value="1"' . selected( (string) ( $existing['is_active'] ?? '1' ), '1', false ) . '>Active</option><option value="0"' . selected( (string) ( $existing['is_active'] ?? '1' ), '0', false ) . '>Inactive</option></select></td></tr>';
 		echo '</table><p class="submit"><input type="submit" class="button button-primary" value="' . esc_attr( $existing ? __( 'Update rule', 'woocommerce-delivery-management' ) : __( 'Add rule', 'woocommerce-delivery-management' ) ) . '" /></p></form></div>';
-		echo '<div class="wdm-list-card"><h2>Existing rules</h2><table class="wp-list-table widefat striped"><thead><tr><th>ID</th><th>Region</th><th>Warehouse</th><th>Weekday</th><th>Slot</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+		echo '<div class="wdm-list-card"><h2>Existing rules</h2><form method="get" action="' . esc_url( admin_url( 'admin.php' ) ) . '"><input type="hidden" name="page" value="wdm-delivery-management-rules" /><div class="tablenav top"><div class="alignleft actions"><input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Search rules" /><input type="submit" class="button" value="Search" /></div></div></form><table class="wp-list-table widefat striped"><thead><tr><th>ID</th><th>Region</th><th>Warehouse</th><th>Weekday</th><th>Slot</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
 		if ( empty( $rules ) ) {
 			echo '<tr><td colspan="8">No rules yet.</td></tr>';
 		} else {
@@ -342,7 +348,7 @@ final class AdminPages {
 			}
 		}
 		echo '</tbody></table>';
-		self::pagination( $total, $per_page, $page, 'wdm-delivery-management-rules' );
+		self::pagination( $total, $per_page, $page, 'wdm-delivery-management-rules', array( 's' => $search ) );
 		echo '</div></div></div>';
 	}
 
@@ -415,21 +421,6 @@ final class AdminPages {
 
 		$row = self::warehouseRepository()->findById( $id );
 		return $row ? (string) ( $row['name'] ?? 'Unknown warehouse' ) : 'Unknown warehouse';
-	}
-
-	/**
-	 * Return a sanitized string from the request.
-	 *
-	 * @param string $key Request key.
-	 * @return string
-	 */
-	private static function stringParam( string $key ): string {
-		$value = filter_input( INPUT_GET, $key, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		if ( false === $value || null === $value ) {
-			return '';
-		}
-
-		return trim( sanitize_text_field( wp_unslash( $value ) ) );
 	}
 
 	/**

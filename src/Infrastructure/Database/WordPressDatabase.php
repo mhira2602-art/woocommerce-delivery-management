@@ -40,6 +40,10 @@ final class WordPressDatabase implements DatabaseInterface, \WDM\Application\Con
 		return (string) $this->wpdb->prefix;
 	}
 
+	public function escapeLike( string $value ): string {
+		return $this->wpdb->esc_like( $value );
+	}
+
 	public function begin(): void {
 		$this->query( 'START TRANSACTION' ); }
 	public function commit(): void {

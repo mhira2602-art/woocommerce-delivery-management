@@ -129,7 +129,7 @@ final class DomainServiceTest extends TestCase {
 			)
 		);
 		$rules->expects( $this->once() )->method( 'update' )->with( 2, array( 'is_active' => 0 ) )->willReturn( true );
-		$this->assertSame( 0, ( new DeliveryRuleService( $rules ) )->deactivate( 2 )['is_active'] );
+		$this->assertSame( 0, ( new DeliveryRuleService( $rules, $this->createMock( WarehouseStore::class ) ) )->deactivate( 2 )['is_active'] );
 	}
 
 	public function test_date_calculation_is_deterministic_and_honors_cutoff(): void {
@@ -156,5 +156,108 @@ final class DomainServiceTest extends TestCase {
 		$service = new DriverService( $drivers );
 		$this->assertSame( 5, $service->create( array( 'name' => 'Driver' ) ) );
 		$this->assertSame( 'inactive', $service->deactivate( 5 )['status'] );
+	}
+
+	public function test_driver_service_rejects_invalid_name_and_phone(): void {
+		$drivers = $this->createMock( DriverStore::class );
+		$service = new DriverService( $drivers );
+
+		$this->expectException( InvalidArgumentException::class );
+		$service->create(
+			array(
+				'name'  => 'Driver42',
+				'email' => 'driver@example.com',
+				'phone' => '5551234567',
+			)
+		);
+	}
+
+	public function test_driver_service_rejects_invalid_phone_before_persistence(): void {
+		$drivers = $this->createMock( DriverStore::class );
+		$drivers->expects( $this->never() )->method( 'insert' );
+		$service = new DriverService( $drivers );
+
+		$this->expectException( InvalidArgumentException::class );
+		$service->create(
+			array(
+				'name'  => 'Driver',
+				'phone' => '12345-67890',
+			)
+		);
+	}
+
+	public function test_driver_optional_contact_fields_and_reference_limit_are_enforced(): void {
+		$drivers = $this->createMock( DriverStore::class );
+		$drivers->expects( $this->once() )->method( 'insert' )->willReturn( 6 );
+		$service = new DriverService( $drivers );
+
+		$this->assertSame( 6, $service->create( array( 'name' => 'Driver' ) ) );
+		$drivers->expects( $this->never() )->method( 'update' );
+		$this->expectException( InvalidArgumentException::class );
+		$service->create(
+			array(
+				'name'               => 'Driver',
+				'employee_reference' => str_repeat( 'x', 101 ),
+			)
+		);
+	}
+
+	public function test_warehouse_region_is_optional_but_bounded(): void {
+		$warehouses = $this->createMock( WarehouseStore::class );
+		$warehouses->expects( $this->once() )->method( 'insert' )->willReturn( 8 );
+		$service = new \WDM\Application\WarehouseService( $warehouses );
+
+		$this->assertSame(
+			8,
+			$service->create(
+				array(
+					'name' => 'Warehouse',
+					'code' => 'WH-1',
+				)
+			)
+		);
+		$this->expectException( InvalidArgumentException::class );
+		$service->create(
+			array(
+				'name'   => 'Warehouse',
+				'code'   => 'WH-1',
+				'region' => str_repeat( 'x', 101 ),
+			)
+		);
+	}
+
+	public function test_invalid_rule_is_rejected_before_persistence(): void {
+		$rules = $this->createMock( \WDM\Application\Contract\DeliveryRuleStore::class );
+		$rules->expects( $this->never() )->method( 'insert' );
+		$service = new DeliveryRuleService( $rules, $this->createMock( WarehouseStore::class ) );
+
+		$this->expectException( InvalidArgumentException::class );
+		$service->create( array( 'weekday' => 7 ) );
+	}
+
+	public function test_rule_with_missing_warehouse_is_rejected_before_persistence(): void {
+		$rules      = $this->createMock( \WDM\Application\Contract\DeliveryRuleStore::class );
+		$warehouses = $this->createMock( WarehouseStore::class );
+		$rules->expects( $this->never() )->method( 'insert' );
+		$warehouses->expects( $this->once() )->method( 'findById' )->with( 404 )->willReturn( null );
+		$service = new DeliveryRuleService( $rules, $warehouses );
+
+		$this->expectException( NotFoundException::class );
+		$service->create( array( 'warehouse_id' => 404 ) );
+	}
+
+	public function test_warehouse_service_rejects_invalid_name_and_status(): void {
+		$warehouses = $this->createMock( WarehouseStore::class );
+		$service    = new \WDM\Application\WarehouseService( $warehouses );
+
+		$this->expectException( InvalidArgumentException::class );
+		$service->create(
+			array(
+				'name'   => 'Warehouse',
+				'code'   => 'WH-1',
+				'region' => 'North',
+				'status' => 'unknown',
+			)
+		);
 	}
 }

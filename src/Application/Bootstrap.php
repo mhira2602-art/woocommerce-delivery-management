@@ -109,7 +109,7 @@ final class Bootstrap {
 			$this->container->factory(
 				DeliveryRuleService::class,
 				static function ( Container $container ): DeliveryRuleService {
-					return new DeliveryRuleService( $container->get( DeliveryRuleRepository::class ) );
+					return new DeliveryRuleService( $container->get( DeliveryRuleRepository::class ), $container->get( WarehouseRepository::class ) );
 				}
 			);
 			$this->container->set( DeliveryDateCalculator::class, new DeliveryDateCalculator() );

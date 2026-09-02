@@ -22,6 +22,11 @@ interface DatabaseInterface {
 	public function getPrefix(): string;
 
 	/**
+	 * Escape wildcard characters in a value used by a LIKE expression.
+	 */
+	public function escapeLike( string $value ): string;
+
+	/**
 	 * Prepare a query with wpdb's native placeholder handling.
 	 *
 	 * @param string $query Query with placeholders.

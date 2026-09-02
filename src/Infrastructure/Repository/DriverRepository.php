@@ -47,10 +47,11 @@ final class DriverRepository extends AbstractRepository implements DriverStore {
 
 		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
 			$search  = trim( (string) $filters['search'] );
+			$like    = '%' . $this->database->escapeLike( $search ) . '%';
 			$where[] = '(name LIKE %s OR email LIKE %s OR phone LIKE %s)';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
 		}
 
 		$query = "SELECT id, name, email, phone, status, employee_reference, created_at, updated_at FROM {$this->table}";
@@ -76,10 +77,11 @@ final class DriverRepository extends AbstractRepository implements DriverStore {
 
 		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
 			$search  = trim( (string) $filters['search'] );
+			$like    = '%' . $this->database->escapeLike( $search ) . '%';
 			$where[] = '(name LIKE %s OR email LIKE %s OR phone LIKE %s)';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
-			$args[]  = '%' . $search . '%';
+			$args[]  = $like;
+			$args[]  = $like;
+			$args[]  = $like;
 		}
 
 		$query = "SELECT COUNT(*) FROM {$this->table}";
