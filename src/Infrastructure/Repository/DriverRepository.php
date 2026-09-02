@@ -31,7 +31,7 @@ final class DriverRepository extends AbstractRepository implements DriverStore {
 		return $this->database->getResults( $this->database->prepare( "SELECT id, name, email, phone, status, employee_reference, created_at, updated_at FROM {$this->table} WHERE status = %s ORDER BY name ASC", $status ) ); }
 
 	/**
-	 * @param array<string,mixed> $filters Optional status filter.
+	 * @param array<string,mixed> $filters Optional status/search filters.
 	 * @return array<int,array<string,mixed>>
 	 */
 	public function findAll( int $limit = 20, int $offset = 0, array $filters = array() ): array {
@@ -45,6 +45,14 @@ final class DriverRepository extends AbstractRepository implements DriverStore {
 			$args[]  = (string) $filters['status'];
 		}
 
+		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
+			$search  = trim( (string) $filters['search'] );
+			$where[] = '(name LIKE %s OR email LIKE %s OR phone LIKE %s)';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
+		}
+
 		$query = "SELECT id, name, email, phone, status, employee_reference, created_at, updated_at FROM {$this->table}";
 		if ( ! empty( $where ) ) {
 			$query .= ' WHERE ' . implode( ' AND ', $where );
@@ -56,7 +64,7 @@ final class DriverRepository extends AbstractRepository implements DriverStore {
 		return $this->database->getResults( $this->database->prepare( $query, ...$args ) );
 	}
 
-	/** @param array<string,mixed> $filters Optional status filter. */
+	/** @param array<string,mixed> $filters Optional status/search filters. */
 	public function countAll( array $filters = array() ): int {
 		$where = array();
 		$args  = array();
@@ -64,6 +72,14 @@ final class DriverRepository extends AbstractRepository implements DriverStore {
 		if ( isset( $filters['status'] ) && '' !== (string) $filters['status'] ) {
 			$where[] = 'status = %s';
 			$args[]  = (string) $filters['status'];
+		}
+
+		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
+			$search  = trim( (string) $filters['search'] );
+			$where[] = '(name LIKE %s OR email LIKE %s OR phone LIKE %s)';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
 		}
 
 		$query = "SELECT COUNT(*) FROM {$this->table}";

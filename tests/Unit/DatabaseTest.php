@@ -15,6 +15,8 @@ use WDM\Infrastructure\Database\DatabaseInterface;
 use WDM\Infrastructure\Database\SchemaManager;
 use WDM\Infrastructure\Repository\DeliveryRepository;
 use WDM\Infrastructure\Repository\DeliveryStatusHistoryRepository;
+use WDM\Infrastructure\Repository\DriverRepository;
+use WDM\Infrastructure\Repository\WarehouseRepository;
 
 /**
  * Verifies SQL construction is delegated through the database boundary.
@@ -84,6 +86,54 @@ final class DatabaseTest extends TestCase {
 		$this->assertNull( $repository->findById( 99 ) );
 		$this->expectException( InvalidArgumentException::class );
 		$repository->findById( 0 );
+	}
+
+	public function test_driver_repository_searches_server_side(): void {
+		$database   = new RecordingDatabase();
+		$repository = new DriverRepository( $database );
+
+		$repository->findAll( 20, 0, array( 'search' => 'smith' ) );
+		$repository->countAll( array( 'search' => 'smith' ) );
+
+		$this->assertStringContainsString( 'name LIKE %smith%', $database->last_prepared_query );
+		$this->assertStringContainsString( 'email LIKE %smith%', $database->last_prepared_query );
+		$this->assertStringContainsString( 'phone LIKE %smith%', $database->last_prepared_query );
+	}
+
+	public function test_warehouse_repository_searches_server_side(): void {
+		$database   = new RecordingDatabase();
+		$repository = new WarehouseRepository( $database );
+
+		$repository->findAll( 20, 0, array( 'search' => 'harbor' ) );
+		$repository->countAll( array( 'search' => 'harbor' ) );
+
+		$this->assertStringContainsString( 'name LIKE %harbor%', $database->last_prepared_query );
+		$this->assertStringContainsString( 'city LIKE %harbor%', $database->last_prepared_query );
+		$this->assertStringContainsString( 'region LIKE %harbor%', $database->last_prepared_query );
+	}
+
+	public function test_delivery_repository_searches_by_customer_and_order_server_side(): void {
+		$database   = new RecordingDatabase();
+		$repository = new DeliveryRepository( $database );
+
+		$repository->findAll(
+			20,
+			0,
+			array(
+				'status' => 'assigned',
+				'search' => 'smith',
+			)
+		);
+		$repository->countAll(
+			array(
+				'status' => 'assigned',
+				'search' => 'smith',
+			)
+		);
+
+		$this->assertStringContainsString( 'status = assigned', $database->last_prepared_query );
+		$this->assertStringContainsString( 'first_name LIKE %smith%', $database->last_prepared_query );
+		$this->assertStringContainsString( 'last_name LIKE %smith%', $database->last_prepared_query );
 	}
 
 	public function test_delivery_insert_requires_a_valid_order_id(): void {

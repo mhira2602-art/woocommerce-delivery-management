@@ -163,7 +163,9 @@ final class AdminBootstrap {
 	public function changeDeliveryStatus(): void {
 		$this->authorize( 'wdm_manage_deliveries', 'wdm_change_delivery_status' );
 
-		$id     = AdminRequest::intParam( $_POST, 'delivery_id', 0 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified centrally in authorize().
+		$id = AdminRequest::intParam( $_POST, 'delivery_id', 0 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified centrally in authorize().
 		$status = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : '';
 		if ( $id < 1 || '' === $status ) {
 			$this->redirectWithNotice( 'wdm-delivery-management-deliveries', 'Invalid delivery status request.', false );
@@ -199,8 +201,10 @@ final class AdminBootstrap {
 	public function assignDriver(): void {
 		$this->authorize( 'wdm_manage_deliveries', 'wdm_assign_driver' );
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified centrally in authorize().
 		$delivery_id = AdminRequest::intParam( $_POST, 'delivery_id', 0 );
-		$driver_id   = AdminRequest::intParam( $_POST, 'driver_id', 0 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified centrally in authorize().
+		$driver_id = AdminRequest::intParam( $_POST, 'driver_id', 0 );
 		if ( $delivery_id < 1 || $driver_id < 1 ) {
 			$this->redirectWithNotice( 'wdm-delivery-management-deliveries', 'A valid delivery and driver are required.', false );
 		}
@@ -235,7 +239,9 @@ final class AdminBootstrap {
 	public function assignWarehouse(): void {
 		$this->authorize( 'wdm_manage_deliveries', 'wdm_assign_warehouse' );
 
-		$delivery_id  = AdminRequest::intParam( $_POST, 'delivery_id', 0 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified centrally in authorize().
+		$delivery_id = AdminRequest::intParam( $_POST, 'delivery_id', 0 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified centrally in authorize().
 		$warehouse_id = AdminRequest::intParam( $_POST, 'warehouse_id', 0 );
 		if ( $delivery_id < 1 || $warehouse_id < 1 ) {
 			$this->redirectWithNotice( 'wdm-delivery-management-deliveries', 'A valid delivery and warehouse are required.', false );
@@ -268,11 +274,11 @@ final class AdminBootstrap {
 	/**
 	 * Save or update a driver.
 	 */
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The nonce is verified centrally in authorize().
+	/* phpcs:disable WordPress.Security.NonceVerification.Missing -- The nonce is verified centrally in authorize(). */
 	public function saveDriver(): void {
 		$this->authorize( 'wdm_manage_drivers', 'wdm_save_driver' );
 
-		$post_email = filter_input( INPUT_POST, 'email', FILTER_SANITIZE_EMAIL );
+		$post_email  = filter_input( INPUT_POST, 'email', FILTER_SANITIZE_EMAIL );
 		$post_status = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$id          = AdminRequest::intParam( $_POST, 'id', 0 );
 		$data        = array(
@@ -294,11 +300,12 @@ final class AdminBootstrap {
 			$this->redirectWithNotice( 'wdm-delivery-management-drivers', 'Driver could not be saved.', false );
 		}
 	}
+	/* phpcs:enable WordPress.Security.NonceVerification.Missing */
 
 	/**
 	 * Save or update a warehouse.
 	 */
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The nonce is verified centrally in authorize().
+	/* phpcs:disable WordPress.Security.NonceVerification.Missing -- The nonce is verified centrally in authorize(). */
 	public function saveWarehouse(): void {
 		$this->authorize( 'wdm_manage_warehouses', 'wdm_save_warehouse' );
 
@@ -322,11 +329,12 @@ final class AdminBootstrap {
 			$this->redirectWithNotice( 'wdm-delivery-management-warehouses', 'Warehouse could not be saved.', false );
 		}
 	}
+	/* phpcs:enable WordPress.Security.NonceVerification.Missing */
 
 	/**
 	 * Save or update a delivery rule.
 	 */
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The nonce is verified centrally in authorize().
+	/* phpcs:disable WordPress.Security.NonceVerification.Missing -- The nonce is verified centrally in authorize(). */
 	public function saveRule(): void {
 		$this->authorize( 'wdm_manage_delivery_rules', 'wdm_save_rule' );
 
@@ -355,6 +363,7 @@ final class AdminBootstrap {
 			$this->redirectWithNotice( 'wdm-delivery-management-rules', 'Delivery rule could not be saved.', false );
 		}
 	}
+	/* phpcs:enable WordPress.Security.NonceVerification.Missing */
 
 	/**
 	 * Display a notice stored in the query string.

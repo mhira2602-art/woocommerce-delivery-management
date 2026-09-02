@@ -78,16 +78,16 @@ final class AdminPages {
 		$status_filter = self::stringParam( 'status' );
 		$search        = self::stringParam( 's' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only pagination args are not state-changing.
-		$page          = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
-		$per_page      = 20;
-		$offset        = ( $page - 1 ) * $per_page;
-		$total         = $repo->countAll(
+		$page       = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
+		$per_page   = 20;
+		$offset     = ( $page - 1 ) * $per_page;
+		$total      = $repo->countAll(
 			array(
 				'status' => $status_filter,
 				'search' => $search,
 			)
 		);
-		$deliveries    = $repo->findAll(
+		$deliveries = $repo->findAll(
 			$per_page,
 			$offset,
 			array(
@@ -102,7 +102,7 @@ final class AdminPages {
 		foreach ( array( 'pending', 'scheduled', 'assigned', 'out_for_delivery', 'delivered', 'failed', 'cancelled' ) as $status ) {
 			echo '<option value="' . esc_attr( $status ) . '"' . selected( $status_filter, $status, false ) . '>' . esc_html( self::statusLabel( $status ) ) . '</option>';
 		}
-		echo '</select> <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Order ID / Delivery ID" /> <input type="submit" class="button" value="Filter" />';
+		echo '</select> <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Order ID / Customer name" /> <input type="submit" class="button" value="Filter" />';
 		echo '</div></div></form>';
 		echo '<table class="wp-list-table widefat striped"><thead><tr><th>' . esc_html__( 'ID', 'woocommerce-delivery-management' ) . '</th><th>' . esc_html__( 'Order', 'woocommerce-delivery-management' ) . '</th><th>' . esc_html__( 'Status', 'woocommerce-delivery-management' ) . '</th><th>' . esc_html__( 'Driver', 'woocommerce-delivery-management' ) . '</th><th>' . esc_html__( 'Warehouse', 'woocommerce-delivery-management' ) . '</th><th>' . esc_html__( 'Region', 'woocommerce-delivery-management' ) . '</th><th>' . esc_html__( 'Scheduled', 'woocommerce-delivery-management' ) . '</th><th>' . esc_html__( 'Updated', 'woocommerce-delivery-management' ) . '</th></tr></thead><tbody>';
 		if ( empty( $deliveries ) ) {
@@ -222,13 +222,18 @@ final class AdminPages {
 	 * Render the driver management screen.
 	 */
 	public static function drivers(): void {
-		$repo     = self::driverRepository();
+		$repo   = self::driverRepository();
+		$search = self::stringParam( 's' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- list pagination is read-only and not a mutation.
 		$page     = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
 		$per_page = 20;
 		$offset   = ( $page - 1 ) * $per_page;
-		$drivers  = $repo->findAll( $per_page, $offset );
-		$total    = $repo->countAll();
+		$total    = $repo->countAll(
+			array(
+				'search' => $search,
+			)
+		);
+		$drivers  = $repo->findAll( $per_page, $offset, array( 'search' => $search ) );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- edit selection is a read-only screen parameter.
 		$editing  = AdminRequest::intParam( $_GET, 'edit_id', 0 );
 		$existing = $editing > 0 ? $repo->findById( $editing ) : null;
@@ -242,16 +247,18 @@ final class AdminPages {
 		echo '<tr><th><label for="wdm_driver_reference">' . esc_html__( 'Reference', 'woocommerce-delivery-management' ) . '</label></th><td><input id="wdm_driver_reference" name="employee_reference" type="text" value="' . esc_attr( (string) ( $existing['employee_reference'] ?? '' ) ) . '" class="regular-text" /></td></tr>';
 		echo '<tr><th><label for="wdm_driver_status">' . esc_html__( 'Status', 'woocommerce-delivery-management' ) . '</label></th><td><select id="wdm_driver_status" name="status"><option value="active"' . selected( (string) ( $existing['status'] ?? 'active' ), 'active', false ) . '>' . esc_html__( 'Active', 'woocommerce-delivery-management' ) . '</option><option value="inactive"' . selected( (string) ( $existing['status'] ?? 'active' ), 'inactive', false ) . '>' . esc_html__( 'Inactive', 'woocommerce-delivery-management' ) . '</option></select></td></tr>';
 		echo '</table><p class="submit"><input type="submit" class="button button-primary" value="' . esc_attr( $existing ? __( 'Update driver', 'woocommerce-delivery-management' ) : __( 'Add driver', 'woocommerce-delivery-management' ) ) . '" /></p></form></div>';
-		echo '<div class="wdm-list-card"><h2>' . esc_html__( 'Existing drivers', 'woocommerce-delivery-management' ) . '</h2><table class="wp-list-table widefat striped"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Reference</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+		echo '<div class="wdm-list-card"><h2>' . esc_html__( 'Existing drivers', 'woocommerce-delivery-management' ) . '</h2>';
+		echo '<form method="get" action="' . esc_url( admin_url( 'admin.php' ) ) . '"><input type="hidden" name="page" value="wdm-delivery-management-drivers" /><div class="tablenav top"><div class="alignleft actions"><input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Search drivers" /><input type="submit" class="button" value="Search" /></div></div></form>';
+		echo '<table class="wp-list-table widefat striped"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Reference</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
 		if ( empty( $drivers ) ) {
-			echo '<tr><td colspan="7">No drivers yet.</td></tr>';
+			echo '<tr><td colspan="7">No drivers found.</td></tr>';
 		} else {
 			foreach ( $drivers as $driver ) {
 				echo '<tr><td>' . esc_html( (string) $driver['id'] ) . '</td><td>' . esc_html( (string) ( $driver['name'] ?? '' ) ) . '</td><td>' . esc_html( (string) ( $driver['email'] ?? '' ) ) . '</td><td>' . esc_html( (string) ( $driver['phone'] ?? '' ) ) . '</td><td>' . esc_html( (string) ( $driver['employee_reference'] ?? '' ) ) . '</td><td>' . esc_html( (string) ( $driver['status'] ?? 'inactive' ) ) . '</td><td><a href="' . esc_url( admin_url( 'admin.php?page=wdm-delivery-management-drivers&edit_id=' . (int) $driver['id'] ) ) . '">Edit</a></td></tr>';
 			}
 		}
 		echo '</tbody></table>';
-		self::pagination( $total, $per_page, $page, 'wdm-delivery-management-drivers' );
+		self::pagination( $total, $per_page, $page, 'wdm-delivery-management-drivers', array( 's' => $search ) );
 		echo '</div></div></div>';
 	}
 
@@ -259,16 +266,17 @@ final class AdminPages {
 	 * Render the warehouse management screen.
 	 */
 	public static function warehouses(): void {
-		$repo       = self::warehouseRepository();
+		$repo   = self::warehouseRepository();
+		$search = self::stringParam( 's' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- list pagination is read-only and not a mutation.
 		$page       = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
 		$per_page   = 20;
 		$offset     = ( $page - 1 ) * $per_page;
-		$warehouses = $repo->findAll( $per_page, $offset );
-		$total      = $repo->countAll();
+		$warehouses = $repo->findAll( $per_page, $offset, array( 'search' => $search ) );
+		$total      = $repo->countAll( array( 'search' => $search ) );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- edit selection is a read-only screen parameter.
-		$editing    = AdminRequest::intParam( $_GET, 'edit_id', 0 );
-		$existing   = $editing > 0 ? $repo->findById( $editing ) : null;
+		$editing  = AdminRequest::intParam( $_GET, 'edit_id', 0 );
+		$existing = $editing > 0 ? $repo->findById( $editing ) : null;
 		echo '<div class="wrap"><h1>' . esc_html__( 'Warehouses', 'woocommerce-delivery-management' ) . '</h1>';
 		echo '<div class="wdm-row"><div class="wdm-form-card"><h2>' . ( $existing ? esc_html__( 'Edit warehouse', 'woocommerce-delivery-management' ) : esc_html__( 'Add warehouse', 'woocommerce-delivery-management' ) ) . '</h2><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		wp_nonce_field( 'wdm_save_warehouse', '_wpnonce' );
@@ -278,16 +286,18 @@ final class AdminPages {
 		echo '<tr><th><label for="wdm_warehouse_region">' . esc_html__( 'Region', 'woocommerce-delivery-management' ) . '</label></th><td><input id="wdm_warehouse_region" name="region" type="text" value="' . esc_attr( (string) ( $existing['region'] ?? '' ) ) . '" class="regular-text" /></td></tr>';
 		echo '<tr><th><label for="wdm_warehouse_status">' . esc_html__( 'Status', 'woocommerce-delivery-management' ) . '</label></th><td><select id="wdm_warehouse_status" name="status"><option value="active"' . selected( (string) ( $existing['status'] ?? 'active' ), 'active', false ) . '>' . esc_html__( 'Active', 'woocommerce-delivery-management' ) . '</option><option value="inactive"' . selected( (string) ( $existing['status'] ?? 'active' ), 'inactive', false ) . '>' . esc_html__( 'Inactive', 'woocommerce-delivery-management' ) . '</option></select></td></tr>';
 		echo '</table><p class="submit"><input type="submit" class="button button-primary" value="' . esc_attr( $existing ? __( 'Update warehouse', 'woocommerce-delivery-management' ) : __( 'Add warehouse', 'woocommerce-delivery-management' ) ) . '" /></p></form></div>';
-		echo '<div class="wdm-list-card"><h2>' . esc_html__( 'Existing warehouses', 'woocommerce-delivery-management' ) . '</h2><table class="wp-list-table widefat striped"><thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Region</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+		echo '<div class="wdm-list-card"><h2>' . esc_html__( 'Existing warehouses', 'woocommerce-delivery-management' ) . '</h2>';
+		echo '<form method="get" action="' . esc_url( admin_url( 'admin.php' ) ) . '"><input type="hidden" name="page" value="wdm-delivery-management-warehouses" /><div class="tablenav top"><div class="alignleft actions"><input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Search warehouses" /><input type="submit" class="button" value="Search" /></div></div></form>';
+		echo '<table class="wp-list-table widefat striped"><thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Region</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
 		if ( empty( $warehouses ) ) {
-			echo '<tr><td colspan="6">No warehouses yet.</td></tr>';
+			echo '<tr><td colspan="6">No warehouses found.</td></tr>';
 		} else {
 			foreach ( $warehouses as $warehouse ) {
 				echo '<tr><td>' . esc_html( (string) $warehouse['id'] ) . '</td><td>' . esc_html( (string) ( $warehouse['name'] ?? '' ) ) . '</td><td>' . esc_html( (string) ( $warehouse['code'] ?? '' ) ) . '</td><td>' . esc_html( (string) ( $warehouse['region'] ?? '' ) ) . '</td><td>' . esc_html( (string) ( $warehouse['status'] ?? 'inactive' ) ) . '</td><td><a href="' . esc_url( admin_url( 'admin.php?page=wdm-delivery-management-warehouses&edit_id=' . (int) $warehouse['id'] ) ) . '">Edit</a></td></tr>';
 			}
 		}
 		echo '</tbody></table>';
-		self::pagination( $total, $per_page, $page, 'wdm-delivery-management-warehouses' );
+		self::pagination( $total, $per_page, $page, 'wdm-delivery-management-warehouses', array( 's' => $search ) );
 		echo '</div></div></div>';
 	}
 
@@ -295,7 +305,7 @@ final class AdminPages {
 	 * Render the delivery rules management screen.
 	 */
 	public static function rules(): void {
-		$repo     = self::ruleRepository();
+		$repo = self::ruleRepository();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- list pagination is read-only and not a mutation.
 		$page     = max( 1, AdminRequest::intParam( $_GET, 'paged', 1 ) );
 		$per_page = 20;

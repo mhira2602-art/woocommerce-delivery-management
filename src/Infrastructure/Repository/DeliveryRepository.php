@@ -47,8 +47,8 @@ final class DeliveryRepository extends AbstractRepository implements DeliverySto
 
 	/** @return array<int,array<string,mixed>> */
 	public function findByStatus( string $status, int $limit = 100, int $offset = 0 ): array {
-		$limit   = max( 1, min( 1000, $limit ) );
-		$offset  = max( 0, $offset );
+		$limit  = max( 1, min( 1000, $limit ) );
+		$offset = max( 0, $offset );
 		return $this->database->getResults( $this->database->prepare( "SELECT id, order_id, driver_id, warehouse_id, region, status, scheduled_date, estimated_date, actual_date, time_slot, delivery_charge, created_at, updated_at FROM {$this->table} WHERE status = %s ORDER BY scheduled_date ASC, id ASC LIMIT %d OFFSET %d", $status, $limit, $offset ) );
 	}
 
@@ -57,10 +57,10 @@ final class DeliveryRepository extends AbstractRepository implements DeliverySto
 	 * @return array<int,array<string,mixed>>
 	 */
 	public function findAll( int $limit = 20, int $offset = 0, array $filters = array() ): array {
-		$limit   = max( 1, min( 500, $limit ) );
-		$offset  = max( 0, $offset );
-		$where   = array();
-		$args    = array();
+		$limit  = max( 1, min( 500, $limit ) );
+		$offset = max( 0, $offset );
+		$where  = array();
+		$args   = array();
 
 		if ( isset( $filters['status'] ) && '' !== (string) $filters['status'] ) {
 			$where[] = 'status = %s';
@@ -68,8 +68,10 @@ final class DeliveryRepository extends AbstractRepository implements DeliverySto
 		}
 
 		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
-			$search = trim( (string) $filters['search'] );
-			$where[] = '(CAST(order_id AS CHAR) LIKE %s OR CAST(id AS CHAR) LIKE %s)';
+			$search  = trim( (string) $filters['search'] );
+			$where[] = '(CAST(order_id AS CHAR) LIKE %s OR CAST(id AS CHAR) LIKE %s OR first_name LIKE %s OR last_name LIKE %s)';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
 			$args[]  = '%' . $search . '%';
 			$args[]  = '%' . $search . '%';
 		}
@@ -89,8 +91,8 @@ final class DeliveryRepository extends AbstractRepository implements DeliverySto
 	 * @param array<string,mixed> $filters Optional status/search filters.
 	 */
 	public function countAll( array $filters = array() ): int {
-		$where  = array();
-		$args   = array();
+		$where = array();
+		$args  = array();
 
 		if ( isset( $filters['status'] ) && '' !== (string) $filters['status'] ) {
 			$where[] = 'status = %s';
@@ -98,8 +100,10 @@ final class DeliveryRepository extends AbstractRepository implements DeliverySto
 		}
 
 		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
-			$search = trim( (string) $filters['search'] );
-			$where[] = '(CAST(order_id AS CHAR) LIKE %s OR CAST(id AS CHAR) LIKE %s)';
+			$search  = trim( (string) $filters['search'] );
+			$where[] = '(CAST(order_id AS CHAR) LIKE %s OR CAST(id AS CHAR) LIKE %s OR first_name LIKE %s OR last_name LIKE %s)';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
 			$args[]  = '%' . $search . '%';
 			$args[]  = '%' . $search . '%';
 		}

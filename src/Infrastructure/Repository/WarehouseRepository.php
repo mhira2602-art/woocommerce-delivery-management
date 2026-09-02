@@ -31,7 +31,7 @@ final class WarehouseRepository extends AbstractRepository implements WarehouseS
 		return false !== $this->database->delete( $this->table, array( 'id' => $id ), array( '%d' ) ); }
 
 	/**
-	 * @param array<string,mixed> $filters Optional status/region filters.
+	 * @param array<string,mixed> $filters Optional status/region/search filters.
 	 * @return array<int,array<string,mixed>>
 	 */
 	public function findAll( int $limit = 20, int $offset = 0, array $filters = array() ): array {
@@ -50,6 +50,14 @@ final class WarehouseRepository extends AbstractRepository implements WarehouseS
 			$args[]  = trim( (string) $filters['region'] );
 		}
 
+		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
+			$search  = trim( (string) $filters['search'] );
+			$where[] = '(name LIKE %s OR city LIKE %s OR region LIKE %s)';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
+		}
+
 		$query = "SELECT id, name, code, address_line_1, address_line_2, city, state, postcode, country, region, status, created_at, updated_at FROM {$this->table}";
 		if ( ! empty( $where ) ) {
 			$query .= ' WHERE ' . implode( ' AND ', $where );
@@ -61,7 +69,7 @@ final class WarehouseRepository extends AbstractRepository implements WarehouseS
 		return $this->database->getResults( $this->database->prepare( $query, ...$args ) );
 	}
 
-	/** @param array<string,mixed> $filters Optional status/region filters. */
+	/** @param array<string,mixed> $filters Optional status/region/search filters. */
 	public function countAll( array $filters = array() ): int {
 		$where = array();
 		$args  = array();
@@ -74,6 +82,14 @@ final class WarehouseRepository extends AbstractRepository implements WarehouseS
 		if ( isset( $filters['region'] ) && '' !== trim( (string) $filters['region'] ) ) {
 			$where[] = 'region = %s';
 			$args[]  = trim( (string) $filters['region'] );
+		}
+
+		if ( isset( $filters['search'] ) && '' !== trim( (string) $filters['search'] ) ) {
+			$search  = trim( (string) $filters['search'] );
+			$where[] = '(name LIKE %s OR city LIKE %s OR region LIKE %s)';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
+			$args[]  = '%' . $search . '%';
 		}
 
 		$query = "SELECT COUNT(*) FROM {$this->table}";
